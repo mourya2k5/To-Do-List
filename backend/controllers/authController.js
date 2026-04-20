@@ -77,9 +77,8 @@ exports.setupMFA = async (req, res) => {
         const userId = req.user.id;
         const secret = speakeasy.generateSecret({ name: `TodoApp (${userId})` });
         
-        await redisClient.hSet(`user:${userId}`, {
-            mfaSecret: secret.base32
-        });
+        // Store the secret temporarily. It will be committed to the user's hash upon successful verification
+        await redisClient.setEx(`mfa_pending:${userId}`, 600, secret.base32);
 
         QRCode.toDataURL(secret.otpauth_url, (err, data_url) => {
             if (err) return sendError(res, 'Error generating QR Code', 500);
@@ -93,21 +92,46 @@ exports.setupMFA = async (req, res) => {
 exports.verifyMFA = async (req, res) => {
     try {
         const { userId, token } = req.body;
+        
+        if (!userId || !token) {
+            return sendError(res, 'userId and token are required', 400);
+        }
+
         const user = await redisClient.hGetAll(`user:${userId}`);
         
         if (!user || Object.keys(user).length === 0) {
             return sendError(res, 'User not found', 404);
         }
 
+        let mfaSecret = user.mfaSecret;
+        let isSetup = false;
+
+        if (user.mfaEnabled === 'false') {
+            const pendingSecret = await redisClient.get(`mfa_pending:${userId}`);
+            if (!pendingSecret) {
+                return sendError(res, 'MFA setup session expired or not found', 400);
+            }
+            mfaSecret = pendingSecret;
+            isSetup = true;
+        }
+
+        if (!mfaSecret) {
+            return sendError(res, 'MFA is not configured for this user', 400);
+        }
+
         const verified = speakeasy.totp.verify({
-            secret: user.mfaSecret,
+            secret: mfaSecret,
             encoding: 'base32',
             token: token
         });
 
         if (verified) {
-            if (user.mfaEnabled === 'false') {
-                await redisClient.hSet(`user:${userId}`, { mfaEnabled: 'true' });
+            if (isSetup) {
+                await redisClient.hSet(`user:${userId}`, { 
+                    mfaEnabled: 'true',
+                    mfaSecret: mfaSecret
+                });
+                await redisClient.del(`mfa_pending:${userId}`);
             }
             sendSuccess(res, {
                 id: user.id,
@@ -117,6 +141,21 @@ exports.verifyMFA = async (req, res) => {
         } else {
             sendError(res, 'Invalid OTP', 401);
         }
+    } catch (error) {
+        sendError(res, error.message, 500);
+    }
+};
+
+exports.getMfaStatus = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const user = await redisClient.hGetAll(`user:${userId}`);
+        
+        if (!user || Object.keys(user).length === 0) {
+            return sendError(res, 'User not found', 404);
+        }
+
+        sendSuccess(res, { mfaEnabled: user.mfaEnabled === 'true' });
     } catch (error) {
         sendError(res, error.message, 500);
     }

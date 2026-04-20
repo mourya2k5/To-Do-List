@@ -52,6 +52,7 @@ const api = {
             noAuth: true
         }),
         setupMfa: () => api._request('/auth/setup-mfa', { method: 'POST' }),
+        checkMfaStatus: () => api._request('/auth/mfa-status'),
         verifyMfa: (userId, token) => api._request('/auth/verify-mfa', {
             method: 'POST',
             body: JSON.stringify({ userId, token }),

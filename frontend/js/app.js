@@ -80,6 +80,11 @@ appDom.btnLogout.addEventListener('click', logout);
 
 appDom.btnSetupMfaApp.addEventListener('click', async () => {
     try {
+        const statusRes = await api.auth.checkMfaStatus();
+        if (statusRes.mfaEnabled) {
+            return alert('MFA is already enabled on your account.');
+        }
+
         const mfaRes = await api.auth.setupMfa();
         document.getElementById('qrCodeContainer').innerHTML = `<img src="${mfaRes.qrCode}" alt="QR Code">`;
         document.getElementById('mfaSecret').value = mfaRes.secret;

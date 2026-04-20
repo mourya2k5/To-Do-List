@@ -118,7 +118,7 @@ dom.btnVerifyMfaSetup.addEventListener('click', async () => {
     if (!code) return alert('Enter code');
     
     try {
-        const res = await api.auth.verifyMfaSetup(authState.userId, code);
+        const res = await api.auth.verifyMfa(authState.userId, code);
         handleAuthSuccess(res.token, res.username);
     } catch (err) {
         alert(err.message);

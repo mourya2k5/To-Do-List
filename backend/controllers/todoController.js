@@ -59,6 +59,10 @@ exports.updateTodo = async (req, res) => {
         const { completed } = req.body;
         const userId = req.user.id;
 
+        if (typeof completed !== 'boolean') {
+            return sendError(res, 'completed must be a boolean', 400);
+        }
+
         const isMember = await redisClient.sIsMember(`user:${userId}:todos`, id);
         if (!isMember) {
             return sendError(res, 'Todo not found or unauthorized', 404);
