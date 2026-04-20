@@ -1,0 +1,92 @@
+const crypto = require('crypto');
+const redisClient = require('../config/redis');
+const { sendSuccess, sendError } = require('../utils/response');
+
+exports.getTodos = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const todoIds = await redisClient.sMembers(`user:${userId}:todos`);
+        
+        if (todoIds.length === 0) {
+            return sendSuccess(res, []);
+        }
+
+        const todosPromises = todoIds.map(id => redisClient.hGetAll(`todo:${id}`));
+        const todos = await Promise.all(todosPromises);
+        
+        const parsedTodos = todos.map(todo => ({
+            ...todo,
+            completed: todo.completed === 'true'
+        }));
+
+        parsedTodos.sort((a,b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+        sendSuccess(res, parsedTodos);
+    } catch (error) {
+        sendError(res, error.message, 500);
+    }
+};
+
+exports.createTodo = async (req, res) => {
+    try {
+        const { title } = req.body;
+        const userId = req.user.id;
+
+        if (!title) {
+            return sendError(res, 'Title is required', 400);
+        }
+
+        const todoId = crypto.randomUUID();
+        const newTodo = {
+            id: todoId,
+            title,
+            completed: 'false',
+            createdAt: new Date().toISOString()
+        };
+
+        await redisClient.hSet(`todo:${todoId}`, newTodo);
+        await redisClient.sAdd(`user:${userId}:todos`, todoId);
+
+        sendSuccess(res, { ...newTodo, completed: false }, 201);
+    } catch (error) {
+        sendError(res, error.message, 500);
+    }
+};
+
+exports.updateTodo = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { completed } = req.body;
+        const userId = req.user.id;
+
+        const isMember = await redisClient.sIsMember(`user:${userId}:todos`, id);
+        if (!isMember) {
+            return sendError(res, 'Todo not found or unauthorized', 404);
+        }
+
+        await redisClient.hSet(`todo:${id}`, { completed: String(completed) });
+
+        sendSuccess(res, { id, completed });
+    } catch (error) {
+        sendError(res, error.message, 500);
+    }
+};
+
+exports.deleteTodo = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user.id;
+
+        const isMember = await redisClient.sIsMember(`user:${userId}:todos`, id);
+        if (!isMember) {
+            return sendError(res, 'Todo not found or unauthorized', 404);
+        }
+
+        await redisClient.del(`todo:${id}`);
+        await redisClient.sRem(`user:${userId}:todos`, id);
+
+        sendSuccess(res, { message: 'Todo deleted' });
+    } catch (error) {
+        sendError(res, error.message, 500);
+    }
+};

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Production ToDo App</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="theme-toggle" id="themeToggle">
+        <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        <svg id="sunIcon" class="hidden" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+    </div>
+
+    <!-- Auth Container -->
+    <div class="container" id="authContainer">
+        <!-- Login Form -->
+        <div class="card" id="loginForm">
+            <h1>Welcome Back</h1>
+            <p>Please enter your details to sign in.</p>
+            <form id="formLogin">
+                <div class="input-group">
+                    <label for="loginUsername">Username</label>
+                    <input type="text" id="loginUsername" required>
+                </div>
+                <div class="input-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                <button type="submit" class="btn primary" id="btnLogin">Sign In</button>
+            </form>
+            <p class="switch-form">Don't have an account? <a href="#" id="showRegister">Sign up</a></p>
+        </div>
+
+        <!-- Register Form -->
+        <div class="card hidden" id="registerForm">
+            <h1>Create Account</h1>
+            <p>Get started with our free ToDo app.</p>
+            <form id="formRegister">
+                <div class="input-group">
+                    <label for="registerUsername">Username</label>
+                    <input type="text" id="registerUsername" required>
+                </div>
+                <div class="input-group">
+                    <label for="registerPassword">Password</label>
+                    <input type="password" id="registerPassword" required>
+                </div>
+                <button type="submit" class="btn primary" id="btnRegister">Sign Up</button>
+            </form>
+            <p class="switch-form">Already have an account? <a href="#" id="showLogin">Sign in</a></p>
+        </div>
+
+        <!-- MFA Setup Form -->
+        <div class="card hidden" id="mfaSetupForm">
+            <h1>Setup 2FA</h1>
+            <p>Scan the QR code with your Authenticator app.</p>
+            <div id="qrCodeContainer" class="qr-container"></div>
+            <div class="input-group">
+                <label>Secret Key</label>
+                <input type="text" id="mfaSecret" readonly>
+            </div>
+            <div class="input-group">
+                <label for="mfaSetupCode">Enter the 6-digit code</label>
+                <input type="text" id="mfaSetupCode" required maxlength="6">
+            </div>
+            <button id="btnVerifyMfaSetup" class="btn primary">Verify & Complete</button>
+            <button id="btnSkipMfaSetup" class="btn secondary mt-1">Skip for now</button>
+        </div>
+
+        <!-- MFA Login Form -->
+        <div class="card hidden" id="mfaLoginForm">
+            <h1>Multi-Factor Authentication</h1>
+            <p>Enter the 6-digit code from your app.</p>
+            <form id="formMfaLogin">
+                <div class="input-group">
+                    <label for="mfaLoginCode">Verification Code</label>
+                    <input type="text" id="mfaLoginCode" required maxlength="6">
+                </div>
+                <button type="submit" class="btn primary">Verify</button>
+                <button type="button" id="btnCancelMfaLogin" class="btn secondary mt-1">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div class="container hidden" id="appContainer">
+        <div class="card app-card">
+            <div class="app-header">
+                <div>
+                    <h1>My Tasks</h1>
+                    <p id="userGreeting">Hello, User</p>
+                </div>
+                <div class="app-actions">
+                    <button class="btn secondary small" id="btnSetupMfaApp">Setup 2FA</button>
+                    <button class="btn secondary small" id="btnLogout">Sign Out</button>
+                </div>
+            </div>
+
+            <form id="formTodo" class="todo-form">
+                <input type="text" id="todoInput" placeholder="What needs to be done?" required autocomplete="off">
+                <button type="submit" class="btn primary">Add Task</button>
+            </form>
+
+            <div class="todo-lists">
+                <div class="todo-section">
+                    <h2>Pending Tasks <span id="pendingCount" class="badge">0</span></h2>
+                    <ul id="pendingList" class="todo-list"></ul>
+                </div>
+                
+                <div class="todo-section mt-2">
+                    <h2>Completed Tasks <span id="completedCount" class="badge">0</span></h2>
+                    <ul id="completedList" class="todo-list"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
