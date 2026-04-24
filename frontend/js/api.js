@@ -62,14 +62,20 @@ const api = {
 
     todos: {
         getAll: () => api._request('/todos'),
-        create: (title) => api._request('/todos', {
+        create: (title, dueDate) => api._request('/todos', {
             method: 'POST',
-            body: JSON.stringify({ title })
+            body: JSON.stringify({ title, dueDate })
         }),
-        update: (id, completed) => api._request(`/todos/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify({ completed })
-        }),
+        update: (id, completed, title, dueDate) => {
+            const body = {};
+            if (completed !== undefined) body.completed = completed;
+            if (title !== undefined) body.title = title;
+            if (dueDate !== undefined) body.dueDate = dueDate;
+            return api._request(`/todos/${id}`, {
+                method: 'PUT',
+                body: JSON.stringify(body)
+            });
+        },
         delete: (id) => api._request(`/todos/${id}`, {
             method: 'DELETE'
         })

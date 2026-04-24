@@ -29,7 +29,7 @@ exports.getTodos = async (req, res) => {
 
 exports.createTodo = async (req, res) => {
     try {
-        const { title } = req.body;
+        const { title, dueDate } = req.body;
         const userId = req.user.id;
 
         if (!title) {
@@ -41,6 +41,7 @@ exports.createTodo = async (req, res) => {
             id: todoId,
             title,
             completed: 'false',
+            dueDate: dueDate || '',
             createdAt: new Date().toISOString()
         };
 
@@ -56,21 +57,29 @@ exports.createTodo = async (req, res) => {
 exports.updateTodo = async (req, res) => {
     try {
         const { id } = req.params;
-        const { completed } = req.body;
+        const { completed, title, dueDate } = req.body;
         const userId = req.user.id;
 
-        if (typeof completed !== 'boolean') {
-            return sendError(res, 'completed must be a boolean', 400);
+        const updateFields = {};
+        if (completed !== undefined) {
+            if (typeof completed !== 'boolean') {
+                return sendError(res, 'completed must be a boolean', 400);
+            }
+            updateFields.completed = String(completed);
         }
+        if (title !== undefined) updateFields.title = title;
+        if (dueDate !== undefined) updateFields.dueDate = dueDate;
 
         const isMember = await redisClient.sIsMember(`user:${userId}:todos`, id);
         if (!isMember) {
             return sendError(res, 'Todo not found or unauthorized', 404);
         }
 
-        await redisClient.hSet(`todo:${id}`, { completed: String(completed) });
+        if (Object.keys(updateFields).length > 0) {
+            await redisClient.hSet(`todo:${id}`, updateFields);
+        }
 
-        sendSuccess(res, { id, completed });
+        sendSuccess(res, { id, ...updateFields });
     } catch (error) {
         sendError(res, error.message, 500);
     }

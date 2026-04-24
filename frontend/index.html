@@ -84,36 +84,168 @@
     </div>
 
     <!-- Main App Container -->
-    <div class="container hidden" id="appContainer">
-        <div class="card app-card">
-            <div class="app-header">
-                <div>
-                    <h1>My Tasks</h1>
-                    <p id="userGreeting">Hello, User</p>
+    <div class="app-layout hidden" id="appContainer">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>ToDo Pro</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-target="view-todo">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    Todo List
+                </button>
+                <button class="nav-item" data-target="view-pro">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                    Get Pro
+                </button>
+                <button class="nav-item" data-target="view-profile">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    Profile
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="btn secondary full-width" id="btnSetupMfaApp">Setup MFA</button>
+                <button class="btn secondary full-width mt-1" id="btnLogout">Sign Out</button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="main-header">
+                <h1 id="viewTitle">Todo List</h1>
+                <p id="userGreeting">Hello, User</p>
+            </header>
+
+            <div class="views-container">
+                <!-- Todo View -->
+                <div id="view-todo" class="view-section active">
+                    <div class="card app-card">
+                        <form id="formTodo" class="todo-form">
+                            <input type="text" id="todoInput" placeholder="What needs to be done?" required autocomplete="off">
+                            <input type="datetime-local" id="todoDueDate" class="todo-date-input">
+                            <button type="submit" class="btn primary">Add Task</button>
+                        </form>
+
+                        <div class="todo-lists">
+                            <div class="todo-section">
+                                <h2>Pending Tasks <span id="pendingCount" class="badge">0</span></h2>
+                                <ul id="pendingList" class="todo-list"></ul>
+                            </div>
+                            
+                            <div class="todo-section mt-2">
+                                <h2>Completed Tasks <span id="completedCount" class="badge">0</span></h2>
+                                <ul id="completedList" class="todo-list"></ul>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="app-actions">
-                    <button class="btn secondary small" id="btnSetupMfaApp">Setup MFA</button>
-                    <button class="btn secondary small" id="btnLogout">Sign Out</button>
+
+                <!-- Pro View (Dummy Payment) -->
+                <div id="view-pro" class="view-section hidden">
+                    <div class="card pro-card">
+                        <div class="pro-header">
+                            <h2>Upgrade to Pro 💎</h2>
+                            <p>Unlock premium features and support our development.</p>
+                            <div class="price-tag">₹499<span>/lifetime</span></div>
+                        </div>
+                        <form id="formPayment" class="payment-form">
+                            <h3>Select Payment Method</h3>
+                            <div class="payment-methods">
+                                <label class="method-card">
+                                    <input type="radio" name="paymentMethod" value="Card" checked>
+                                    <div class="method-content">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                                        <span>Credit / Debit Card</span>
+                                    </div>
+                                </label>
+                                <label class="method-card">
+                                    <input type="radio" name="paymentMethod" value="UPI">
+                                    <div class="method-content">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+                                        <span>UPI</span>
+                                    </div>
+                                </label>
+                                <label class="method-card">
+                                    <input type="radio" name="paymentMethod" value="Netbanking">
+                                    <div class="method-content">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                                        <span>Netbanking</span>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="payment-action">
+                                <button type="submit" class="btn primary full-width payment-btn" id="btnPayNow">
+                                    <span class="btn-text">Pay ₹499 Now</span>
+                                    <span class="spinner hidden"></span>
+                                </button>
+                            </div>
+                            <div id="paymentMessage" class="payment-message hidden"></div>
+                        </form>
+                        
+                        <div class="transaction-history mt-2">
+                            <h3>Transaction History</h3>
+                            <div class="table-responsive">
+                                <table id="transactionTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Transaction ID</th>
+                                            <th>Method</th>
+                                            <th>Date</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="transactionList">
+                                        <!-- Transactions will appear here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile View (Analytics) -->
+                <div id="view-profile" class="view-section hidden">
+                    <div class="card profile-card">
+                        <div class="profile-header">
+                            <div class="avatar">👤</div>
+                            <div class="user-info">
+                                <h2 id="profileName">User Name</h2>
+                                <!-- No email in token right now, just username -->
+                            </div>
+                        </div>
+
+                        <div class="analytics-dashboard mt-2">
+                            <h3>Task Analytics</h3>
+                            <div class="stats-grid">
+                                <div class="stat-box">
+                                    <div class="stat-value" id="statTotal">0</div>
+                                    <div class="stat-label">Total Tasks</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-value text-success" id="statCompleted">0</div>
+                                    <div class="stat-label">Completed</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-value text-warning" id="statPending">0</div>
+                                    <div class="stat-label">Pending</div>
+                                </div>
+                            </div>
+
+                            <div class="progress-section mt-2">
+                                <div class="progress-header">
+                                    <span>Completion Rate</span>
+                                    <span id="statPercentage">0%</span>
+                                </div>
+                                <div class="progress-bar-bg">
+                                    <div class="progress-bar-fill" id="statProgressBar" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <form id="formTodo" class="todo-form">
-                <input type="text" id="todoInput" placeholder="What needs to be done?" required autocomplete="off">
-                <button type="submit" class="btn primary">Add Task</button>
-            </form>
-
-            <div class="todo-lists">
-                <div class="todo-section">
-                    <h2>Pending Tasks <span id="pendingCount" class="badge">0</span></h2>
-                    <ul id="pendingList" class="todo-list"></ul>
-                </div>
-                
-                <div class="todo-section mt-2">
-                    <h2>Completed Tasks <span id="completedCount" class="badge">0</span></h2>
-                    <ul id="completedList" class="todo-list"></ul>
-                </div>
-            </div>
-        </div>
+        </main>
     </div>
 
     <script src="js/api.js"></script>

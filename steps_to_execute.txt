@@ -1,0 +1,190 @@
+====================================================================
+  TO-DO LIST APP — COMPLETE COMMAND REFERENCE
+  (Run all commands from: C:\Users\moury\OneDrive\Desktop\To-Do-List)
+====================================================================
+
+--------------------------------------------------------------------
+⚠️  IMPORTANT: PATH FIX FOR MINIKUBE (Run once per terminal session)
+--------------------------------------------------------------------
+Minikube is installed at: C:\Program Files\Kubernetes\Minikube\
+Windows may not auto-update PATH in an open terminal after install.
+
+IF minikube is not recognized, run this FIRST in your terminal:
+    $env:PATH += ";C:\Program Files\Kubernetes\Minikube"
+
+To make it PERMANENT (so you never need to do this again), run:
+    [System.Environment]::SetEnvironmentVariable("PATH", $env:PATH + ";C:\Program Files\Kubernetes\Minikube", [System.EnvironmentVariableTarget]::User)
+
+    NOTE: After running the permanent fix, close and reopen PowerShell
+          once — future sessions will work without any extra steps.
+
+Verify tools are working:
+    minikube version
+    kubectl version --client
+
+
+====================================================================
+ SECTION 1: DOCKER COMPOSE (Local Development — Easiest)
+====================================================================
+
+-- Start the app (builds images and runs all containers) --
+    docker-compose up --build -d
+
+-- View running containers --
+    docker ps
+
+-- View live logs --
+    docker-compose logs -f
+
+-- View logs for a specific service --
+    docker-compose logs -f frontend
+    docker-compose logs -f backend
+
+-- Stop all containers --
+    docker-compose down
+
+-- Stop and remove volumes (clears Redis data) --
+    docker-compose down -v
+
+-- After changing any code file, rebuild and restart --
+    docker-compose up --build -d
+
+-- App URL (after running) --
+    http://localhost:8080
+
+
+====================================================================
+ SECTION 2: MINIKUBE SETUP (First Time Only)
+====================================================================
+
+-- Step 0: Fix PATH if minikube is not recognized (current session) --
+    $env:PATH += ";C:\Program Files\Kubernetes\Minikube"
+
+    To fix permanently (run once, then restart PowerShell):
+    [System.Environment]::SetEnvironmentVariable("PATH", $env:PATH + ";C:\Program Files\Kubernetes\Minikube", [System.EnvironmentVariableTarget]::User)
+
+-- Step 1: Start Minikube using Docker as backend --
+    minikube start --driver=docker
+
+-- Step 2: Verify Minikube is running --
+    minikube status
+
+-- Step 3: Point Docker CLI to Minikube's internal Docker daemon --
+    minikube docker-env | Invoke-Expression
+
+    ⚠️ This command must be run in EVERY new terminal session
+       before building images for Minikube.
+
+-- Step 4: Build images inside Minikube's Docker context --
+    docker build -t todo-frontend:latest ./frontend
+    docker build -t todo-backend:latest ./backend
+
+-- Step 5: Apply all Kubernetes manifests --
+    kubectl apply -f k8s/
+
+-- Step 6: Verify all pods are running --
+    kubectl get pods
+
+    Wait until all pods show STATUS = "Running"
+
+-- Step 7: Open app in browser --
+    minikube service frontend
+
+
+====================================================================
+ SECTION 3: UPDATE CODE IN MINIKUBE (After Changing Files)
+====================================================================
+
+-- Step 1: Point Docker to Minikube (run in current terminal session) --
+    minikube docker-env | Invoke-Expression
+
+-- Step 2: Rebuild only the image(s) you changed --
+    docker build -t todo-frontend:latest ./frontend
+    docker build -t todo-backend:latest ./backend
+
+-- Step 3: Restart the deployment to apply new image --
+    kubectl rollout restart deployment/frontend-deployment
+    kubectl rollout restart deployment/backend-deployment
+
+-- Step 4: Watch rollout progress --
+    kubectl rollout status deployment/frontend-deployment
+
+-- Step 5: Open app in browser --
+    minikube service frontend
+
+
+====================================================================
+ SECTION 4: KUBECTL — USEFUL COMMANDS
+====================================================================
+
+-- List all running pods --
+    kubectl get pods
+
+-- List all services --
+    kubectl get services
+
+-- Describe a pod (useful for debugging) --
+    kubectl describe pod <pod-name>
+
+-- View logs of a pod --
+    kubectl logs <pod-name>
+
+-- View logs for all pods of a deployment --
+    kubectl logs -l app=frontend
+    kubectl logs -l app=backend
+
+-- Delete all deployed resources --
+    kubectl delete -f k8s/
+
+-- Re-apply all manifests --
+    kubectl apply -f k8s/
+
+-- Open Minikube dashboard in browser --
+    minikube dashboard
+
+-- Get the app URL --
+    minikube service frontend --url
+
+-- Stop Minikube (saves state) --
+    minikube stop
+
+-- Delete Minikube cluster entirely --
+    minikube delete
+
+
+====================================================================
+ SECTION 5: FULL RESET & FRESH DEPLOY (Minikube)
+====================================================================
+
+Run these in order to wipe everything and start fresh:
+
+    minikube delete
+    minikube start --driver=docker
+    minikube docker-env | Invoke-Expression
+    docker build -t todo-frontend:latest ./frontend
+    docker build -t todo-backend:latest ./backend
+    kubectl apply -f k8s/
+    kubectl get pods
+    minikube service frontend
+
+
+====================================================================
+ QUICK REFERENCE SUMMARY
+====================================================================
+
+| Goal                            | Command                                      |
+|---------------------------------|----------------------------------------------|
+| Run locally (Docker)            | docker-compose up --build -d                 |
+| Stop local Docker               | docker-compose down                          |
+| Start Minikube                  | minikube start --driver=docker               |
+| Use Minikube Docker daemon      | minikube docker-env | Invoke-Expression       |
+| Build frontend image            | docker build -t todo-frontend:latest ./frontend |
+| Build backend image             | docker build -t todo-backend:latest ./backend   |
+| Deploy to K8s                   | kubectl apply -f k8s/                        |
+| Check pod status                | kubectl get pods                             |
+| Open app (Minikube)             | minikube service frontend                    |
+| Update frontend in Minikube     | docker build + kubectl rollout restart       |
+| Delete K8s resources            | kubectl delete -f k8s/                       |
+| Open Minikube dashboard         | minikube dashboard                           |
+
+====================================================================
